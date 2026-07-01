@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.openpeers.db
+reference/
+.DS_Store
