@@ -104,6 +104,12 @@ const server = http.createServer((req, res) => {
           return sendJson({ messages });
         }
 
+        if (req.url === '/shutdown') {
+          sendJson({ ok: true });
+          setTimeout(() => process.exit(0), 100);
+          return;
+        }
+
       } catch (err: any) {
         return sendJson({ error: err.message }, 500);
       }

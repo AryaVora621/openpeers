@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import * as pty from 'node-pty';
 import { spawn } from 'child_process';
 import http from 'http';
@@ -113,7 +114,14 @@ if (args[0] === 'run' && args[1] === '--') {
   }).on('error', () => {
     console.log("Broker is not running.");
   });
+} else if (args[0] === 'kill-broker') {
+  http.get(`http://127.0.0.1:${BROKER_PORT}/shutdown`, (res) => {
+    console.log("Broker shutdown command sent.");
+  }).on('error', () => {
+    console.log("Broker is not running.");
+  });
 } else {
   console.log("Usage: openpeers run -- <command>   # Wraps the command and intercepts injections");
   console.log("       openpeers status             # Check active peers");
+  console.log("       openpeers kill-broker        # Stop the background broker");
 }
