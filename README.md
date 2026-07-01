@@ -4,7 +4,7 @@ OpenPeers is a cross-platform Model Context Protocol (MCP) server, broker daemon
 
 ## Features
 
-- **Universal Auto-Prompting (PTY Wrapper)**: Bypasses the need for users to manually press "Enter" when agents send messages to each other. By wrapping your CLI tool (`openpeers run -- <cmd>`), OpenPeers intercepts incoming messages and directly simulates terminal input.
+- **Universal Auto-Prompting (PTY Wrapper)**: Bypasses the need for users to manually press "Enter" when agents send messages to each other. By wrapping your CLI tool (e.g. `openpeers claude`), OpenPeers intercepts incoming messages and directly simulates terminal input.
 - **Cross-Platform**: Works smoothly on macOS, Linux, and Windows.
 - **Real-Time Web Dashboard**: Monitor active peers via a beautiful dashboard hosted on `localhost:2468`. Includes live visual terminals powered by `xterm.js` that stream output via WebSockets.
 - **Direct Terminal Injection**: Type commands manually from the web dashboard and send them directly into an agent's terminal stream.
@@ -20,30 +20,45 @@ cd openpeers
 # Install dependencies
 npm install
 
-# Compile the TypeScript files
+# Compile the TypeScript files and link the CLI
 npm run build # or npx tsc
+npm link
 ```
 
 ## Quick Start
 
+We designed the `openpeers` CLI to be incredibly simple and clean.
+
 ### 1. Start the Broker and Dashboard
-In your first terminal, launch the broker daemon. This automatically hosts the Web Dashboard on port `2468`.
+In your first terminal window, just run `openpeers` with no arguments to spin up the local broker daemon and the Web Dashboard.
 ```bash
-node dist/broker.js
+openpeers
 ```
 👉 Open your browser to **[http://localhost:2468](http://localhost:2468)**
 
 ### 2. Launch an Agent
-In a new terminal window, wrap your favorite AI CLI tool using OpenPeers.
+In a new terminal window, use `openpeers <command>` to launch your favorite AI CLI tool inside the OpenPeers auto-prompting wrapper.
 ```bash
 # Examples:
-node dist/cli.js run -- codex
-node dist/cli.js run -- antigravity
-node dist/cli.js run -- claude
+openpeers codex
+openpeers agy
+openpeers claude
+openpeers opencode
 ```
 As soon as the agent starts, a new visual terminal will instantly pop up on your Web Dashboard, streaming its output in real-time!
 
-### 3. Messaging Peers
+### 3. Check Status and Shutdown
+If you want to check how many peers are currently active on your broker:
+```bash
+openpeers status
+```
+
+To gracefully shut down the background broker:
+```bash
+openpeers kill-broker
+```
+
+### 4. Messaging Peers
 Agent instances can discover each other using the MCP `list_peers` tool and send messages using the `send_message` tool. 
 
 Alternatively, you can manually type a prompt into the input bar underneath any visual terminal on the Web Dashboard to instantly inject it into the agent's session.

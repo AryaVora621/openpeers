@@ -10,11 +10,48 @@ const args = process.argv.slice(2);
 const DASHBOARD_PORT = parseInt(process.env.OPENPEERS_DASHBOARD_PORT || '2468', 10);
 const BROKER_PORT = process.env.OPENPEERS_PORT || '7899';
 
-if (args[0] === 'run' && args[1] === '--') {
-  const cmdArgs = args.slice(2);
-  if (cmdArgs.length === 0) {
-    console.error("Usage: openpeers run -- <command>");
-    process.exit(1);
+if (args.length === 0 || args[0] === 'broker') {
+  console.log("Starting OpenPeers Broker and Web Dashboard...");
+  require('./broker.js');
+} else if (args[0] === 'status') {
+  http.get(`http://127.0.0.1:${BROKER_PORT}/list-peers`, (res) => {
+    let body = '';
+    res.on('data', chunk => body += chunk);
+    res.on('end', () => {
+      try {
+        const peers = JSON.parse(body);
+        console.log(`OpenPeers Broker Status: Active`);
+        console.log(`Active Peers: ${peers.length}`);
+        peers.forEach((p: any) => {
+          console.log(`- ID: ${p.id} | PID: ${p.pid} | CWD: ${p.cwd}`);
+        });
+      } catch(e) {
+        console.log("Broker not running or invalid response.");
+      }
+    });
+  }).on('error', () => {
+    console.log("Broker is not running.");
+  });
+} else if (args[0] === 'kill-broker') {
+  http.get(`http://127.0.0.1:${BROKER_PORT}/shutdown`, (res) => {
+    console.log("Broker shutdown command sent.");
+  }).on('error', () => {
+    console.log("Broker is not running.");
+  });
+} else if (args[0] === 'help') {
+  console.log("OpenPeers CLI");
+  console.log("");
+  console.log("Usage:");
+  console.log("  openpeers                 # Start the broker and Web Dashboard");
+  console.log("  openpeers <command>       # Wrap a CLI tool in OpenPeers (e.g., 'openpeers codex', 'openpeers agy')");
+  console.log("  openpeers status          # Check active peers on the broker");
+  console.log("  openpeers kill-broker     # Stop the background broker gracefully");
+} else {
+  // PTY Wrapper mode
+  let cmdArgs = args;
+  // Fallback for previous 'run --' syntax
+  if (args[0] === 'run' && args[1] === '--') {
+    cmdArgs = args.slice(2);
   }
 
   const peerId = crypto.randomBytes(4).toString('hex');
@@ -94,34 +131,4 @@ if (args[0] === 'run' && args[1] === '--') {
       ptyProcess.resize(process.stdout.columns, process.stdout.rows);
     });
   });
-
-} else if (args[0] === 'status') {
-  http.get(`http://127.0.0.1:${BROKER_PORT}/list-peers`, (res) => {
-    let body = '';
-    res.on('data', chunk => body += chunk);
-    res.on('end', () => {
-      try {
-        const peers = JSON.parse(body);
-        console.log(`OpenPeers Broker Status: Active`);
-        console.log(`Active Peers: ${peers.length}`);
-        peers.forEach((p: any) => {
-          console.log(`- ID: ${p.id} | PID: ${p.pid} | CWD: ${p.cwd}`);
-        });
-      } catch(e) {
-        console.log("Broker not running or invalid response.");
-      }
-    });
-  }).on('error', () => {
-    console.log("Broker is not running.");
-  });
-} else if (args[0] === 'kill-broker') {
-  http.get(`http://127.0.0.1:${BROKER_PORT}/shutdown`, (res) => {
-    console.log("Broker shutdown command sent.");
-  }).on('error', () => {
-    console.log("Broker is not running.");
-  });
-} else {
-  console.log("Usage: openpeers run -- <command>   # Wraps the command and intercepts injections");
-  console.log("       openpeers status             # Check active peers");
-  console.log("       openpeers kill-broker        # Stop the background broker");
 }
